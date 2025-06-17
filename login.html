@@ -4,19 +4,44 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Logowanie - Grow a Gordon</title>
-  <link rel="stylesheet" href="styles.css" />
+  <style>
+    body { font-family: Arial, sans-serif; background: #e8f5e9; color: #2e7d32; text-align:center; padding: 30px; }
+    form { max-width: 320px; margin: auto; }
+    input, button { width: 100%; padding: 10px; margin: 10px 0; font-size: 16px; }
+    button { background-color: #a5d6a7; border: none; border-radius: 6px; cursor: pointer; }
+    button:hover { background-color: #81c784; }
+  </style>
 </head>
 <body>
-  <h1>Logowanie</h1>
 
+  <h1>Logowanie</h1>
   <form id="login-form">
     <input type="email" name="email" placeholder="Email" required />
-    <input type="password" name="password" placeholder="Haso" required />
-    <button type="submit">Zaloguj si</button>
+    <input type="password" name="password" placeholder="Hasło" required minlength="6" />
+    <button type="submit">Zaloguj się</button>
   </form>
 
-  <p>Nie masz konta? <a href="register.html">Zarejestruj si</a></p>
+  <script type="module">
+    import { auth } from './firebase-config.js';
+    import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-  <script type="module" src="login.js"></script>
+    const form = document.getElementById('login-form');
+
+    form.addEventListener('submit', async e => {
+      e.preventDefault();
+
+      const email = form.email.value.trim();
+      const password = form.password.value;
+
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+        alert('Zalogowano pomyślnie!');
+        window.location.href = 'indexV2.html';
+      } catch (error) {
+        alert('Błąd logowania: ' + error.message);
+      }
+    });
+  </script>
+
 </body>
 </html>

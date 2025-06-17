@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Grow a Gordon - Start</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #e8f5e9;
+      color: #2e7d32;
+      text-align: center;
+      padding: 40px;
+    }
+    #username-display {
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+    #play-button {
+      padding: 15px 30px;
+      font-size: 20px;
+      background-color: #a5d6a7;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      color: #1b5e20;
+    }
+    #play-button:hover {
+      background-color: #81c784;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="username-display">Ładowanie...</div>
+  <button id="play-button">Zagraj teraz</button>
+
+  <script type="module">
+    import { auth } from './firebase-config.js';
+
+    // Pokazuje nazwę użytkownika lub przekierowuje, jeśli nie zalogowany
+    auth.onAuthStateChanged(user => {
+      if (!user) {
+        window.location.href = 'login.html';
+        return;
+      }
+      const name = user.displayName || "Nieznany";
+      document.getElementById('username-display').textContent = `👤 ${name}`;
+    });
+
+    // Przycisk przenosi do game.html
+    document.getElementById('play-button').addEventListener('click', () => {
+      window.location.href = 'game.html';
+    });
+  </script>
+
+</body>
+</html>
