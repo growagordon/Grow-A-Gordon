@@ -3,21 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Grow a Gordon 🌱</title>
+  <title>Grow a Gordon 🎍</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-      background-color: #f0f8ff;
-      color: #333;
-    }
-    header {
-      margin-bottom: 20px;
-    }
-    #user-info {
-      font-size: 18px;
-      margin-bottom: 10px;
-    }
+    body { font-family: Arial, sans-serif; margin: 20px; background-color: #f0f8ff; color: #333; }
+    header { margin-bottom: 20px; }
+    #user-info { font-size: 18px; margin-bottom: 10px; }
     #shop, #plants-container {
       border: 1px solid #ccc;
       padding: 10px;
@@ -38,15 +28,8 @@
     #shop div:hover, #plants-container div:hover {
       background-color: #e0f7fa;
     }
-    #codes-section {
-      margin-bottom: 20px;
-    }
-    #codeInput {
-      padding: 5px;
-      font-size: 16px;
-      width: 200px;
-      margin-right: 10px;
-    }
+    #codes-section { margin-bottom: 20px; }
+    #codeInput { padding: 5px; font-size: 16px; width: 200px; margin-right: 10px; }
     #redeemBtn {
       padding: 6px 12px;
       font-size: 16px;
@@ -57,9 +40,7 @@
       border-radius: 4px;
       transition: background-color 0.3s;
     }
-    #redeemBtn:hover {
-      background-color: #0b7dda;
-    }
+    #redeemBtn:hover { background-color: #0b7dda; }
   </style>
 </head>
 <body>
@@ -87,7 +68,6 @@
   <script type="module" src="game.js"></script>
   <script type="module">
     import { redeemCode } from './game.js';
-
     document.getElementById('redeemBtn').addEventListener('click', redeemCode);
   </script>
 </body>
