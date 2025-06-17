@@ -1,36 +1,40 @@
+// game.js
 import { auth, db } from './firebase-config.js';
-import { plantEmojis, plantRarities } from './plants.js';
 import { renderPlant, updateUserInfoUI } from './ui.js';
+import { plantRarities } from './plants.js';
 
 let currentUser = null;
 
-// Funkcja ładowania roślin użytkownika
 async function loadUserPlants() {
   const userDocRef = db.collection('users').doc(currentUser.uid);
   const doc = await userDocRef.get();
   const data = doc.data();
-
   if (!data) return;
 
-  const { plants = [], coins = 0, name = "?" } = data;
+  const { plants = [], coins = 0, name = "Nieznany" } = data;
 
-  document.getElementById("plants-container").innerHTML = "";
+  const container = document.getElementById('plants-container');
+  container.innerHTML = '';
+
   updateUserInfoUI(name, coins);
 
   plants.forEach((plant, index) => {
-    const plantElement = renderPlant(plant, () => sellPlant(index));
-    document.getElementById("plants-container").appendChild(plantElement);
+    const plantElement = renderPlant(plant, async () => {
+      await sellPlant(index);
+    });
+    container.appendChild(plantElement);
   });
 }
 
-// Funkcja sprzedaży rośliny
 async function sellPlant(index) {
   const userDocRef = db.collection('users').doc(currentUser.uid);
   const doc = await userDocRef.get();
   const data = doc.data();
-  const plant = data.plants[index];
 
-  const rarity = plantRarities[plant.name] || "common";
+  const plant = data.plants[index];
+  if (!plant) return;
+
+  const rarity = plantRarities[plant.name] || 'common';
   const prices = {
     common: 10,
     rare: 25,
@@ -44,15 +48,14 @@ async function sellPlant(index) {
   data.plants.splice(index, 1);
 
   await userDocRef.set(data);
-  loadUserPlants();
+  await loadUserPlants();
 }
 
-// Sprawdź zalogowanie
-auth.onAuthStateChanged((user) => {
+auth.onAuthStateChanged(user => {
   if (user) {
     currentUser = user;
     loadUserPlants();
   } else {
-    window.location.href = "login.html";
+    window.location.href = 'login.html';
   }
 });

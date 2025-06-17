@@ -1,35 +1,21 @@
 // plants.js
-
-const plantEmojis = {
-  // Sweetfest
+export const plantEmojis = {
   "Candy Blossom": "🍭",
   "Sugarbud": "🍬",
   "Honeylure": "🍯",
-
-  // Love Festival
   "Roseberry": "🌹",
   "Heartbloom": "💖",
   "Amora Petal": "💞",
-
-  // Lunar Festival
   "Moon Mango": "🌕",
   "Dream Lotus": "🪷",
-
-  // Luck Festival
   "Goldleaf Clover": "🍀",
   "Wishroot": "🌠",
   "Lucky Orchid": "🌸",
-
-  // Harvest Haunt
   "Ember Vine": "🔥",
   "Spookleaf": "👻",
-
-  // Winter’s Gift
   "Chillberry": "🔵",
   "Frostleaf Fern": "❄️",
   "Starlight Ivy": "✨",
-
-  // Zwykłe
   "Carrot": "🥕",
   "Strawberry": "🍓",
   "Blueberry": "🫐",
@@ -52,18 +38,13 @@ const plantEmojis = {
   "Beanstalk": "🌱",
   "Ember Lily": "🌺",
   "Sugar Apple": "🍏",
-
-  // Adminowe
   "Cocode": "🟤",
   "Ownerler": "💪",
   "Admingo": "🟠",
-
-  // Specjalny Gordan
   "Gordan": "😎"
 };
 
-const plantRarities = {
-  // Eventowe
+export const plantRarities = {
   "Candy Blossom": "event",
   "Sugarbud": "event",
   "Honeylure": "event",
@@ -80,8 +61,6 @@ const plantRarities = {
   "Chillberry": "event",
   "Frostleaf Fern": "event",
   "Starlight Ivy": "event",
-
-  // Zwykłe
   "Carrot": "common",
   "Strawberry": "common",
   "Blueberry": "common",
@@ -104,12 +83,8 @@ const plantRarities = {
   "Beanstalk": "rare",
   "Ember Lily": "rare",
   "Sugar Apple": "common",
-
-  // Adminowe
   "Cocode": "admin",
   "Ownerler": "admin",
   "Admingo": "admin",
-
-  // Specjalny Gordan
   "Gordan": "mythical"
 };
