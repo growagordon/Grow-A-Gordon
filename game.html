@@ -1,200 +1,125 @@
-<script type="module">
 import { auth, db } from './firebase-config.js';
 import { renderPlant, updateUserInfoUI } from './ui.js';
 import { plantRarities, plantEmojis } from './plants.js';
 
-let currentUser = null;
-let userData = null;
+let currentUser, userData;
 
 async function loadUserData() {
-  if (!currentUser) return;
-  const userDocRef = db.collection('users').doc(currentUser.uid);
-  const doc = await userDocRef.get();
+  const doc = await db.collection('users').doc(currentUser.uid).get();
   userData = doc.data() || { plants: [], coins: 0, name: "Nieznany", codeFlags: {} };
   updateUserInfoUI(userData.name, userData.coins);
   renderPlants();
+  restockShop();
 }
 
 function renderPlants() {
-  const container = document.getElementById('plants-container');
-  if (!container) return;
-  container.innerHTML = '';
-
-  if (!userData.plants || userData.plants.length === 0) {
-    container.textContent = 'Brak roślin 😢';
+  const c = document.getElementById('plants-container');
+  c.innerHTML = '';
+  if (!userData.plants.length) {
+    c.textContent = 'Brak roślin 😢'; 
     return;
   }
-
-  userData.plants.forEach((plant, idx) => {
-    const plantElement = renderPlant(plant, async () => {
-      await sellPlant(idx);
-    });
-    container.appendChild(plantElement);
+  userData.plants.forEach((p, i) => {
+    const el = renderPlant(p, async () => { await sellPlant(i); });
+    c.appendChild(el);
   });
 }
 
-async function sellPlant(index) {
-  if (!userData || !userData.plants[index]) return;
-  const plant = userData.plants[index];
-  const rarity = plantRarities[plant.name] || 'common';
-
-  const prices = {
-    common: 10,
-    rare: 25,
-    event: 50,
-    admin: 100,
-    mythical: 250
-  };
-  const value = prices[rarity] || 5;
-
-  userData.coins += value;
-  userData.plants.splice(index, 1);
-  await saveUserData();
-  updateUserInfoUI(userData.name, userData.coins);
+async function sellPlant(i) {
+  const p = userData.plants[i];
+  if (!p) return;
+  const v = { common:10, rare:25, event:50, admin:100, mythical:250 }[plantRarities[p.name]||'common'] || 5;
+  userData.coins += v; 
+  userData.plants.splice(i,1);
+  await save(); 
+  updateUserInfoUI(userData.name, userData.coins); 
   renderPlants();
 }
 
-async function saveUserData() {
-  const userDocRef = db.collection('users').doc(currentUser.uid);
-  await userDocRef.set(userData);
+async function save() {
+  await db.collection('users').doc(currentUser.uid).set(userData);
 }
 
-async function redeemCode() {
-  const codeInput = document.getElementById('codeInput');
-  if (!codeInput) return;
-  const code = codeInput.value.trim().toLowerCase();
+export async function redeemCode() {
+  const c = document.getElementById('codeInput');
+  const code = c.value.trim().toLowerCase();
   if (!code) return alert("Wpisz kod.");
-
   if (!userData.codeFlags) userData.codeFlags = {};
 
   switch(code) {
     case 'owneristhebestpeopleinentireworld':
-      if (userData.codeFlags.ownerShopUnlocked) {
-        alert('Kod już wykorzystany!');
-      } else {
-        userData.codeFlags.ownerShopUnlocked = true;
-        alert('Odblokowano sklep właściciela!');
-      }
+      userData.codeFlags.ownerShop = true;
+      alert('Odblokowano sklep właściciela!');
       break;
-
     case 'start':
-      for(let i=0; i<3; i++) {
-        userData.plants.push({ name: "Carrot", age: 0 });
-      }
-      alert('Dodano 3 marchewki do twojego ogródka!');
+      for(let x=0;x<3;x++) userData.plants.push({ name: "Carrot", age:0 });
+      alert('Dodano 3 marchewki!');
       break;
-
     case 'cocodes':
-      if (userData.codeFlags.cocodes) {
-        alert('Kod już wykorzystany!');
-      } else {
-        userData.codeFlags.cocodes = true;
-        alert('Zwiększono szansę na eventowe rośliny o 10%!');
-      }
+      userData.codeFlags.cocodes = true;
+      alert('Do sklepu +10% eventowych!');
       break;
-
     case 'admimangoes':
-      if (userData.codeFlags.admimangoes) {
-        alert('Kod już wykorzystany!');
-      } else {
-        userData.codeFlags.admimangoes = true;
-        alert('Zwiększono szansę na eventowe rośliny do 75%!');
-      }
+      userData.codeFlags.admimangoes = true;
+      alert('Sklepy 75% eventowych!');
       break;
-
     default:
-      alert('Nieznany kod.');
+      alert('Nieznany kod');
       return;
   }
 
-  await saveUserData();
-  codeInput.value = '';
-  await loadUserData();
+  await save(); 
+  c.value='';
+  loadUserData();
+}
+
+function genShop() {
+  const names = Object.keys(plantEmojis);
+  const { cocodes, admimangoes } = userData.codeFlags || {};
+  const base = (cocodes?0.10:0)+(admimangoes?0.75:0) + 0.5;
+  return names.filter(n => {
+    const r = plantRarities[n];
+    if (['admin','mythical'].includes(r) && !userData.codeFlags.ownerShop) return false;
+    if (r==='event') return Math.random()<base;
+    return Math.random()<base;
+  }).slice(0,6).map(n=>({ name: n, age:0 }));
+}
+
+function renderShop(pl) {
+  const s = document.getElementById('shop');
+  s.innerHTML = '';
+  pl.forEach((p, i) => {
+    const d = document.createElement('div');
+    d.textContent = `${plantEmojis[p.name] || '❓'} ${p.name}`;
+    d.onclick = () => buyPlant(i);
+    s.appendChild(d);
+  });
+}
+
+async function buyPlant(i) {
+  const shop = genShop();
+  const p = shop[i];
+  const cost = { common:10, rare:25, event:50 }[ plantRarities[p.name]||'common' ] || 5;
+  if (userData.coins < cost) return alert('Za mało monet!');
+  userData.coins -= cost;
+  userData.plants.push(p);
+  await save(); 
+  updateUserInfoUI(userData.name, userData.coins); 
+  renderPlants(); 
   restockShop();
 }
 
-function generateShopPlants() {
-  const basePlants = Object.keys(plantEmojis);
-  const shopPlants = [];
-
-  const defaultChance = 0.5;
-  const cocodesBonus = userData.codeFlags?.cocodes ? 0.10 : 0;
-  const admimangoesBonus = userData.codeFlags?.admimangoes ? 0.75 : 0;
-  const finalChance = Math.min(1, defaultChance + cocodesBonus + admimangoesBonus);
-
-  basePlants.forEach(name => {
-    const rarity = plantRarities[name] || 'common';
-    if (['admin', 'mythical'].includes(rarity)) return;
-
-    if (Math.random() < finalChance || rarity === 'common') {
-      shopPlants.push({ name, age: 0 });
-    }
-  });
-
-  return shopPlants;
+export function restockShop() {
+  renderShop(genShop());
 }
 
-function restockShop() {
-  const shopDiv = document.getElementById('shop');
-  if (!shopDiv) return;
-
-  const plants = generateShopPlants();
-  shopDiv.innerHTML = '';
-
-  plants.forEach((plant, index) => {
-    const div = document.createElement('div');
-    div.className = 'plant';
-    div.innerHTML = `
-      <div>${plantEmojis[plant.name] || '❓'}</div>
-      <div>${plant.name}</div>
-      <div>Rzadkość: ${plantRarities[plant.name]}</div>
-      <button onclick="buyPlant(${index})">Kup</button>
-    `;
-    shopDiv.appendChild(div);
-  });
-
-  // zapisz aktualne rośliny w sklepie
-  window._currentShop = plants;
-}
-
-async function buyPlant(index) {
-  const plant = window._currentShop?.[index];
-  if (!plant) return;
-
-  const rarity = plantRarities[plant.name] || 'common';
-  const prices = {
-    common: 10,
-    rare: 25,
-    event: 50,
-    admin: 100,
-    mythical: 250
-  };
-  const cost = prices[rarity] || 5;
-
-  if (userData.coins < cost) {
-    alert('Za mało monet!');
-    return;
+auth.onAuthStateChanged(u => {
+  if (u) { 
+    currentUser = u; 
+    loadUserData(); 
+    setInterval(restockShop, 120000); 
   }
-
-  userData.coins -= cost;
-  userData.plants.push(plant);
-  await saveUserData();
-  updateUserInfoUI(userData.name, userData.coins);
-  renderPlants();
-}
-
-auth.onAuthStateChanged(async user => {
-  if (user) {
-    currentUser = user;
-    await loadUserData();
-    restockShop();
-  } else {
-    window.location.href = 'login.html';
+  else { 
+    window.location.href='login.html'; 
   }
 });
-
-// udostępniamy funkcje do HTML
-window.redeemCode = redeemCode;
-window.restockShop = restockShop;
-window.buyPlant = buyPlant;
-</script>
