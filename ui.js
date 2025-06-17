@@ -1,4 +1,3 @@
-// ui.js
 import { plantEmojis, plantRarities } from './plants.js';
 
 export function renderPlant(plant, onSell) {
@@ -18,8 +17,8 @@ export function renderPlant(plant, onSell) {
 }
 
 export function updateUserInfoUI(name, coins) {
-  const usernameEl = document.getElementById('username');
-  const coinsEl = document.getElementById('coins');
+  const usernameEl = document.getElementById('username-display');
+  const coinsEl = document.getElementById('coin-display');
   if(usernameEl) usernameEl.textContent = `👤 ${name}`;
-  if(coinsEl) coinsEl.textContent = `🪙 ${coins}`;
+  if(coinsEl) coinsEl.textContent = `💰 ${coins}`;
 }

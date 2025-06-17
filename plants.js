@@ -1,4 +1,3 @@
-// plants.js
 export const plantEmojis = {
   "Candy Blossom": "🍭",
   "Sugarbud": "🍬",
