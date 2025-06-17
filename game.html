@@ -2,9 +2,12 @@
 <html lang="pl">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Grow a Gordon 🌱</title>
   <link rel="stylesheet" href="styles.css" />
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"></script>
+  <script src="firebase-config.js"></script>
 </head>
 <body>
   <h1>🌿 Grow a Gordon 🌿</h1>
@@ -13,7 +16,9 @@
     Zalogowany jako: <span id="username">...</span> | 💰 Monety: <span id="coins">...</span>
   </div>
 
-  <div id="event-info">Wydarzenie: <span id="current-event">Ładowanie...</span></div>
+  <div id="event-info">
+    Wydarzenie: <span id="current-event">Ładowanie...</span>
+  </div>
 
   <div id="shop-section">
     <h2>🛒 Sklep z roślinami</h2>
@@ -32,7 +37,6 @@
     <div id="code-status"></div>
   </div>
 
-  <script src="firebase-config.js"></script>
   <script src="plants.js"></script>
   <script src="ui.js"></script>
   <script src="game.js"></script>

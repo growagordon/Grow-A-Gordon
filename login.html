@@ -5,7 +5,7 @@
   <title>Logowanie - Grow a Gordon</title>
   <style>
     body { font-family: sans-serif; background: #f8f8f8; text-align: center; padding: 50px; }
-    input, button { margin: 10px; padding: 10px; width: 200px; }
+    input, button { margin: 10px; padding: 10px; width: 250px; font-size: 16px; }
   </style>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"></script>
@@ -13,20 +13,24 @@
 </head>
 <body>
   <h1>Zaloguj się</h1>
-  <input type="email" id="email" placeholder="Email"><br>
-  <input type="password" id="password" placeholder="Hasło"><br>
+  <input type="email" id="email" placeholder="Email" /><br />
+  <input type="password" id="password" placeholder="Hasło" /><br />
   <button onclick="login()">Zaloguj</button>
 
   <script>
     const auth = firebase.auth();
 
     function login() {
-      const email = document.getElementById("email").value;
+      const email = document.getElementById("email").value.trim();
       const password = document.getElementById("password").value;
+
+      if (!email) return alert("Wpisz email!");
+      if (!password) return alert("Wpisz hasło!");
+
       auth.signInWithEmailAndPassword(email, password)
         .then(() => {
           alert("Zalogowano!");
-          window.location.href = "index.html";
+          window.location.href = "game.html";
         })
         .catch(err => alert("Błąd: " + err.message));
     }

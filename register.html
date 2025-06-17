@@ -5,7 +5,7 @@
   <title>Rejestracja - Grow a Gordon</title>
   <style>
     body { font-family: sans-serif; background: #f8f8f8; text-align: center; padding: 50px; }
-    input, button { margin: 10px; padding: 10px; width: 200px; }
+    input, button { margin: 10px; padding: 10px; width: 250px; font-size: 16px; }
   </style>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"></script>
@@ -14,9 +14,9 @@
 </head>
 <body>
   <h1>Załóż konto</h1>
-  <input type="text" id="username" placeholder="Nazwa użytkownika"><br>
-  <input type="email" id="email" placeholder="Email"><br>
-  <input type="password" id="password" placeholder="Hasło"><br>
+  <input type="text" id="username" placeholder="Nazwa użytkownika" /><br />
+  <input type="email" id="email" placeholder="Email" /><br />
+  <input type="password" id="password" placeholder="Hasło" /><br />
   <button onclick="register()">Zarejestruj</button>
 
   <script>
@@ -24,17 +24,16 @@
     const db = firebase.firestore();
 
     function register() {
-      const email = document.getElementById("email").value;
+      const username = document.getElementById("username").value.trim();
+      const email = document.getElementById("email").value.trim();
       const password = document.getElementById("password").value;
-      const username = document.getElementById("username").value;
 
-      if (!username) {
-        alert("Wpisz nazwę użytkownika!");
-        return;
-      }
+      if (!username) return alert("Wpisz nazwę użytkownika!");
+      if (!email) return alert("Wpisz email!");
+      if (!password) return alert("Wpisz hasło!");
 
       auth.createUserWithEmailAndPassword(email, password)
-        .then((userCredential) => {
+        .then(userCredential => {
           const user = userCredential.user;
           return db.collection("users").doc(user.uid).set({
             username: username,
@@ -44,8 +43,8 @@
           });
         })
         .then(() => {
-          alert("Zarejestrowano!");
-          window.location.href = "index.html";
+          alert("Zarejestrowano! Możesz się teraz zalogować.");
+          window.location.href = "login.html";
         })
         .catch(err => alert("Błąd: " + err.message));
     }
