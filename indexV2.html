@@ -1,37 +1,49 @@
-<!DOCTYPE html>
-<html lang="pl">
+<!DOCTYPE html><html lang="pl">
 <head>
-  <meta charset="UTF-8" />
-  <title>Grow a Gordon ðŸŒ±</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="styles.css" />
-  <style>
-    body {
-      font-family: sans-serif;
-      background: linear-gradient(to top, #e5ffe5, #ffffff);
-      padding: 2rem;
-      text-align: center;
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Grow a Gordon </title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <h1>Grow a Gordon </h1>
+    <div id="user-info">
+      <span id="username"></span>
+      <span id="coins"> 0</span>
+    </div>
+  </header>  <main>
+    <section id="intro">
+      <h2>Witaj w Grow a Gordon!</h2>
+      <p>Dbaj o swoje roliny, odkrywaj nowe gatunki i zosta najlepszym ogrodnikiem!</p>
+      <button class="btn" onclick="location.href='game.html'"> Twój ogród</button>
+    </section><section id="shop-container">
+  <h2> Sklep z rolinami</h2>
+  <div id="shop-plants">adowanie sklepu...</div>
+  <button onclick="restockShop()"> Odwie sklep</button>
+</section>
+
+  </main>  <script type="module">
+    import { getRandomPlants } from './plants.js';
+
+    function selectPlant(plant) {
+      alert(`Wybrano: ${plant.name} ${plant.emoji}`);
+      // Tutaj mona doda logik kupowania
     }
 
-    .user-info {
-      position: fixed;
-      bottom: 10px;
-      left: 10px;
-      font-size: 1rem;
-      background: #fff7cc;
-      padding: 8px 12px;
-      border-radius: 10px;
-      box-shadow: 2px 2px 8px rgba(0,0,0,0.2);
+    function restockShop() {
+      const shop = document.getElementById("shop-plants");
+      shop.innerHTML = "";
+      const available = getRandomPlants();
+      available.forEach(p => {
+        const btn = document.createElement("button");
+        btn.innerText = `${p.name} ${p.emoji} - ${p.price}`;
+        btn.onclick = () => selectPlant(p);
+        shop.appendChild(btn);
+      });
     }
 
-    h1 {
-      font-size: 2.5rem;
-      margin-bottom: 1rem;
-    }
-
-    .btn {
-      display: block;
-      width: 200px;
-      margin: 0.5rem auto;
-      padding: 10px;
-      background-color: #4
+    window.restockShop = restockShop;
+    window.onload = restockShop;
+  </script></body>
+</html>
