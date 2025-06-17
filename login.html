@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Zaloguj się — Grow a Gordon 🎍</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <h1>Zaloguj się do Grow a Gordon 🎍</h1>
+  <form id="login-form">
+    <input type="email" id="email" placeholder="Email" required /><br />
+    <input type="password" id="password" placeholder="Hasło" required /><br />
+    <button type="submit">Zaloguj się</button>
+  </form>
+  <p>Nie masz konta? <a href="register.html">Zarejestruj się</a></p>
+
+  <script type="module">
+    import { auth } from './firebase-config.js';
+
+    const loginForm = document.getElementById('login-form');
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = loginForm['email'].value;
+      const password = loginForm['password'].value;
+
+      try {
+        await auth.signInWithEmailAndPassword(email, password);
+        alert('Zalogowano pomyślnie!');
+        window.location.href = 'game.html';
+      } catch (error) {
+        alert('Błąd logowania: ' + error.message);
+      }
+    });
+  </script>
+</body>
+</html>
