@@ -7,23 +7,18 @@
     body { font-family: sans-serif; background: #f8f8f8; text-align: center; padding: 50px; }
     input, button { margin: 10px; padding: 10px; width: 250px; font-size: 16px; }
   </style>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"></script>
-  <script src="firebase-config.js"></script>
-</head>
-<body>
-  <h1>Załóż konto</h1>
-  <input type="text" id="username" placeholder="Nazwa użytkownika" /><br />
-  <input type="email" id="email" placeholder="Email" /><br />
-  <input type="password" id="password" placeholder="Hasło" /><br />
-  <button onclick="register()">Zarejestruj</button>
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { firebaseConfig } from './firebase-config.js';
 
-  <script>
-    const auth = firebase.auth();
-    const db = firebase.firestore();
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-    function register() {
+    window.register = async function () {
       const username = document.getElementById("username").value.trim();
       const email = document.getElementById("email").value.trim();
       const password = document.getElementById("password").value;
@@ -32,22 +27,28 @@
       if (!email) return alert("Wpisz email!");
       if (!password) return alert("Wpisz hasło!");
 
-      auth.createUserWithEmailAndPassword(email, password)
-        .then(userCredential => {
-          const user = userCredential.user;
-          return db.collection("users").doc(user.uid).set({
-            username: username,
-            email: email,
-            coins: 0,
-            plants: []
-          });
-        })
-        .then(() => {
-          alert("Zarejestrowano! Możesz się teraz zalogować.");
-          window.location.href = "login.html";
-        })
-        .catch(err => alert("Błąd: " + err.message));
-    }
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+        await setDoc(doc(db, "users", user.uid), {
+          username,
+          email,
+          coins: 0,
+          plants: []
+        });
+        alert("Zarejestrowano! Możesz się teraz zalogować.");
+        window.location.href = "login.html";
+      } catch (err) {
+        alert("Błąd: " + err.message);
+      }
+    };
   </script>
+</head>
+<body>
+  <h1>Załóż konto</h1>
+  <input type="text" id="username" placeholder="Nazwa użytkownika" /><br />
+  <input type="email" id="email" placeholder="Email" /><br />
+  <input type="password" id="password" placeholder="Hasło" /><br />
+  <button onclick="register()">Zarejestruj</button>
 </body>
 </html>
