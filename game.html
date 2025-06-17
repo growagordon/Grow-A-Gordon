@@ -1,74 +1,200 @@
-<!DOCTYPE html>
-<html lang="pl">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Grow a Gordon 🎍</title>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 20px; background-color: #f0f8ff; color: #333; }
-    header { margin-bottom: 20px; }
-    #user-info { font-size: 18px; margin-bottom: 10px; }
-    #shop, #plants-container {
-      border: 1px solid #ccc;
-      padding: 10px;
-      min-height: 100px;
-      margin-bottom: 20px;
-      background-color: white;
-      border-radius: 6px;
-    }
-    #shop div, #plants-container div {
-      padding: 5px;
-      margin: 5px;
-      display: inline-block;
-      border: 1px solid #888;
-      border-radius: 4px;
-      cursor: pointer;
-      user-select: none;
-    }
-    #shop div:hover, #plants-container div:hover {
-      background-color: #e0f7fa;
-    }
-    #codes-section { margin-bottom: 20px; }
-    #codeInput { padding: 5px; font-size: 16px; width: 200px; margin-right: 10px; }
-    #redeemBtn {
-      padding: 6px 12px;
-      font-size: 16px;
-      cursor: pointer;
-      background-color: #2196F3;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      transition: background-color 0.3s;
-    }
-    #redeemBtn:hover { background-color: #0b7dda; }
-  </style>
-</head>
-<body>
-  <header>
-    <div id="user-info">
-      <span id="username">Ładowanie...</span> | Monety: <span id="coins">0</span>
-    </div>
-  </header>
+<script type="module">
+import { auth, db } from './firebase-config.js';
+import { renderPlant, updateUserInfoUI } from './ui.js';
+import { plantRarities, plantEmojis } from './plants.js';
 
-  <section id="shop-section">
-    <h2>Twój sklep</h2>
-    <div id="shop">Ładowanie sklepu...</div>
-  </section>
+let currentUser = null;
+let userData = null;
 
-  <section id="codes-section">
-    <input type="text" id="codeInput" placeholder="Wpisz kod" />
-    <button id="redeemBtn">Odbierz kod</button>
-  </section>
+async function loadUserData() {
+  if (!currentUser) return;
+  const userDocRef = db.collection('users').doc(currentUser.uid);
+  const doc = await userDocRef.get();
+  userData = doc.data() || { plants: [], coins: 0, name: "Nieznany", codeFlags: {} };
+  updateUserInfoUI(userData.name, userData.coins);
+  renderPlants();
+}
 
-  <section id="plants-section">
-    <h2>Twój ogród</h2>
-    <div id="plants-container">Ładowanie roślin...</div>
-  </section>
+function renderPlants() {
+  const container = document.getElementById('plants-container');
+  if (!container) return;
+  container.innerHTML = '';
 
-  <script type="module" src="game.js"></script>
-  <script type="module">
-    import { redeemCode } from './game.js';
-    document.getElementById('redeemBtn').addEventListener('click', redeemCode);
-  </script>
-</body>
-</html>
+  if (!userData.plants || userData.plants.length === 0) {
+    container.textContent = 'Brak roślin 😢';
+    return;
+  }
+
+  userData.plants.forEach((plant, idx) => {
+    const plantElement = renderPlant(plant, async () => {
+      await sellPlant(idx);
+    });
+    container.appendChild(plantElement);
+  });
+}
+
+async function sellPlant(index) {
+  if (!userData || !userData.plants[index]) return;
+  const plant = userData.plants[index];
+  const rarity = plantRarities[plant.name] || 'common';
+
+  const prices = {
+    common: 10,
+    rare: 25,
+    event: 50,
+    admin: 100,
+    mythical: 250
+  };
+  const value = prices[rarity] || 5;
+
+  userData.coins += value;
+  userData.plants.splice(index, 1);
+  await saveUserData();
+  updateUserInfoUI(userData.name, userData.coins);
+  renderPlants();
+}
+
+async function saveUserData() {
+  const userDocRef = db.collection('users').doc(currentUser.uid);
+  await userDocRef.set(userData);
+}
+
+async function redeemCode() {
+  const codeInput = document.getElementById('codeInput');
+  if (!codeInput) return;
+  const code = codeInput.value.trim().toLowerCase();
+  if (!code) return alert("Wpisz kod.");
+
+  if (!userData.codeFlags) userData.codeFlags = {};
+
+  switch(code) {
+    case 'owneristhebestpeopleinentireworld':
+      if (userData.codeFlags.ownerShopUnlocked) {
+        alert('Kod już wykorzystany!');
+      } else {
+        userData.codeFlags.ownerShopUnlocked = true;
+        alert('Odblokowano sklep właściciela!');
+      }
+      break;
+
+    case 'start':
+      for(let i=0; i<3; i++) {
+        userData.plants.push({ name: "Carrot", age: 0 });
+      }
+      alert('Dodano 3 marchewki do twojego ogródka!');
+      break;
+
+    case 'cocodes':
+      if (userData.codeFlags.cocodes) {
+        alert('Kod już wykorzystany!');
+      } else {
+        userData.codeFlags.cocodes = true;
+        alert('Zwiększono szansę na eventowe rośliny o 10%!');
+      }
+      break;
+
+    case 'admimangoes':
+      if (userData.codeFlags.admimangoes) {
+        alert('Kod już wykorzystany!');
+      } else {
+        userData.codeFlags.admimangoes = true;
+        alert('Zwiększono szansę na eventowe rośliny do 75%!');
+      }
+      break;
+
+    default:
+      alert('Nieznany kod.');
+      return;
+  }
+
+  await saveUserData();
+  codeInput.value = '';
+  await loadUserData();
+  restockShop();
+}
+
+function generateShopPlants() {
+  const basePlants = Object.keys(plantEmojis);
+  const shopPlants = [];
+
+  const defaultChance = 0.5;
+  const cocodesBonus = userData.codeFlags?.cocodes ? 0.10 : 0;
+  const admimangoesBonus = userData.codeFlags?.admimangoes ? 0.75 : 0;
+  const finalChance = Math.min(1, defaultChance + cocodesBonus + admimangoesBonus);
+
+  basePlants.forEach(name => {
+    const rarity = plantRarities[name] || 'common';
+    if (['admin', 'mythical'].includes(rarity)) return;
+
+    if (Math.random() < finalChance || rarity === 'common') {
+      shopPlants.push({ name, age: 0 });
+    }
+  });
+
+  return shopPlants;
+}
+
+function restockShop() {
+  const shopDiv = document.getElementById('shop');
+  if (!shopDiv) return;
+
+  const plants = generateShopPlants();
+  shopDiv.innerHTML = '';
+
+  plants.forEach((plant, index) => {
+    const div = document.createElement('div');
+    div.className = 'plant';
+    div.innerHTML = `
+      <div>${plantEmojis[plant.name] || '❓'}</div>
+      <div>${plant.name}</div>
+      <div>Rzadkość: ${plantRarities[plant.name]}</div>
+      <button onclick="buyPlant(${index})">Kup</button>
+    `;
+    shopDiv.appendChild(div);
+  });
+
+  // zapisz aktualne rośliny w sklepie
+  window._currentShop = plants;
+}
+
+async function buyPlant(index) {
+  const plant = window._currentShop?.[index];
+  if (!plant) return;
+
+  const rarity = plantRarities[plant.name] || 'common';
+  const prices = {
+    common: 10,
+    rare: 25,
+    event: 50,
+    admin: 100,
+    mythical: 250
+  };
+  const cost = prices[rarity] || 5;
+
+  if (userData.coins < cost) {
+    alert('Za mało monet!');
+    return;
+  }
+
+  userData.coins -= cost;
+  userData.plants.push(plant);
+  await saveUserData();
+  updateUserInfoUI(userData.name, userData.coins);
+  renderPlants();
+}
+
+auth.onAuthStateChanged(async user => {
+  if (user) {
+    currentUser = user;
+    await loadUserData();
+    restockShop();
+  } else {
+    window.location.href = 'login.html';
+  }
+});
+
+// udostępniamy funkcje do HTML
+window.redeemCode = redeemCode;
+window.restockShop = restockShop;
+window.buyPlant = buyPlant;
+</script>
