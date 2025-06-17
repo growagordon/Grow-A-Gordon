@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Grow a Gordon - Gra</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #e0ffe0;
+    margin: 0; padding: 20px;
+    display: flex; flex-direction: column; align-items: center;
+  }
+  #garden {
+    display: grid;
+    grid-template-columns: repeat(5, 80px);
+    grid-gap: 10px;
+    margin-bottom: 20px;
+  }
+  .plot {
+    width: 80px; height: 80px;
+    background: #a4d494;
+    border: 2px solid #527a32;
+    border-radius: 8px;
+    display: flex; justify-content: center; align-items: center;
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+    font-size: 36px;
+  }
+  .plot.gordan {
+    border-color: gold;
+    box-shadow: 0 0 10px 2px gold;
+  }
+  #shop {
+    width: 420px;
+    background: #cfe5c4;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+  }
+  .shop-item {
+    cursor: pointer;
+    padding: 5px 10px;
+    border: 1px solid #3a6d1e;
+    border-radius: 5px;
+    margin: 5px 0;
+    background-color: #79b02e;
+    color: white;
+    user-select: none;
+  }
+  .shop-item:hover {
+    background-color: #5a8a1c;
+  }
+  #status {
+    font-weight: bold;
+    margin-bottom: 20px;
+  }
+  #coins {
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
+  #selectedPlant {
+    margin-bottom: 20px;
+  }
+  #code-section {
+    margin-bottom: 20px;
+  }
+  button {
+    padding: 6px 15px;
+    margin-left: 5px;
+    font-size: 14px;
+    cursor: pointer;
+    border-radius: 5px;
+    border: 1.5px solid #3a6d1e;
+    background-color: #79b02e;
+    color: white;
+    transition: background-color 0.2s ease;
+  }
+  button:hover {
+    background-color: #5a8a1c;
+  }
+</style>
+</head>
+<body>
+
+<h1>Grow a Gordon</h1>
+
+<div id="coins">Monety: 500</div>
+<div id="selectedPlant">Wybrana roślina: brak</div>
+
+<div id="shop"><strong>Sklep (ładowanie...)</strong></div>
+
+<div id="garden"></div>
+
+<div id="status">Wybierz pole i roślinę, aby zasadzić.</div>
+
+<div id="code-section">
+  <input type="text" id="codeInput" placeholder="Wpisz kod na adminowe rośliny" />
+  <button id="redeemBtn">Zrealizuj kod</button>
+</div>
+
+<script>
+  // --- Dane roślin ---
+  const plantPrices = {
+    "Carrot": 250,
+    "Tomato": 1000,
+    "Pumpkin": 3000,
+    "Gordan": 30000000,
+    "Candy Blossom": 2000,
+    "Sugarbud": 3500,
+    "Honeylure": 5000,
+    "Roseberry": 1800,
+    "Heartbloom": 4000,
+    "Amora Petal": 5500,
+    "Moon Mango": 7000,
+    "Dream Lotus": 8500,
+    "Goldleaf Clover": 2200,
+    "Wishroot": 3700,
+    "Lucky Orchid": 4800,
+    "Ember Vine": 3000,
+    "Spookleaf": 4500,
+    "Chillberry": 4000,
+    "Frostleaf Fern": 5200,
+    "Starlight Ivy": 6000,
+    // adminowe (nie można kupić)
+    "Cocode": 0,
+    "Ownerler": 0,
+    "Admingo": 0
+  };
+
+  // Typ roślin (zwykła, eventowa, adminowa)
+  const plantType = {
+    "Carrot": "normal",
+    "Tomato": "normal",
+    "Pumpkin": "normal",
+    "Gordan": "normal",
+    "Candy Blossom": "event",
+    "Sugarbud": "event",
+    "Honeylure": "event",
+    "Roseberry": "event",
+    "Heartbloom": "event",
+    "Amora Petal": "event",
+    "Moon Mango": "event",
+    "Dream Lotus": "event",
+    "Goldleaf Clover": "event",
+    "Wishroot": "event",
+    "Lucky Orchid": "event",
+    "Ember Vine": "event",
+    "Spookleaf": "event",
+    "Chillberry": "event",
+    "Frostleaf Fern": "event",
+    "Starlight Ivy": "event",
+    "Cocode": "admin",
+    "Ownerler": "admin",
+    "Admingo": "admin"
+  };
+
+  // Emotikony roślin (dla finalnej wersji)
+  const plantEmojis = {
+    "Carrot": "🥕",
+    "Tomato": "🍅",
+    "Pumpkin": "🎃",
+    "Gordan": "😎",
+    "Candy Blossom": "💐",
+    "Sugarbud": "💐",
+    "Honeylure": "💐",
+    "Roseberry": "💐",
+    "Heartbloom": "💐",
+    "Amora Petal": "💐",
+    "Moon Mango": "💐",
+    "Dream Lotus": "💐",
+    "Goldleaf Clover": "💐",
+    "Wishroot": "💐",
+    "Lucky Orchid": "💐",
+    "Ember Vine": "💐",
+    "Spookleaf": "💐",
+    "Chillberry": "💐",
+    "Frostleaf Fern": "💐",
+    "Starlight Ivy": "💐",
+    "Cocode": "✨",
+    "Ownerler": "✨",
+    "Admingo": "✨"
+  };
+
+  // --- Eventy ---
+  const events = [
+    { name: "Sweetfest", chance: 4, plants: ["Candy Blossom", "Sugarbud", "Honeylure"] },
+    { name: "Love Festival", chance: 3, plants: ["Roseberry", "Heartbloom", "Amora Petal"] },
+    { name: "Lunar Festival", chance: 2, plants: ["Moon Mango", "Dream Lotus"] },
+    { name: "Luck Festival", chance: 4, plants: ["Goldleaf Clover", "Wishroot", "Lucky Orchid"] },
+    { name: "Harvest Haunt", chance: 3, plants: ["Ember Vine", "Spookleaf"] },
+    { name: "Winter’s Gift", chance: 4, plants: ["Chillberry", "Frostleaf Fern", "Starlight Ivy"] },
+    { name: "No Event", chance: 80, plants: [] }
+  ];
+
+  // --- Stan gry ---
+  let playerCoins = 500; // na start stać na dwie marchewki po 250$
+  let selectedPlant = null;
+  let gardenSize = 5; // 5x5
+  let gardenState = Array(gardenSize * gardenSize).fill(null); // null albo {plant: "Carrot", growth: "small"/"medium"/"final"}
+  let adminUnlocked = {
+    Cocode: false,
+    Ownerler: false,
+    Admingo: false
+  };
+  let shopMode = "normal"; // normal / ownerler
+
+  // --- Elementy DOM ---
+  const gardenEl = document.getElementById('garden');
+  const shopEl = document.getElementById('shop');
+  const coinsEl = document.getElementById('coins');
+  const selectedPlantEl = document.getElementById('selectedPlant');
+  const statusEl = document.getElementById('status');
+  const codeInput = document.getElementById('codeInput');
+  const redeemBtn = document.getElementById('redeemBtn');
+
+  // --- Funkcje ---
+  function updateCoinsDisplay() {
+    coinsEl.textContent = `Monety: ${playerCoins}`;
+  }
+
+  function updateSelectedPlantDisplay() {
+    if (selectedPlant) {
+      selectedPlantEl.textContent = `Wybrana roślina: ${plantEmojis[selectedPlant] || ''} ${selectedPlant}`;
+    } else {
+      selectedPlantEl.textContent = "Wybrana roślina: brak";
+    }
+  }
+
+  function drawGarden() {

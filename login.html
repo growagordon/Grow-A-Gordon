@@ -1,41 +1,17 @@
-<!DOCTYPE html>
-<html lang="pl">
-<head>
-  <meta charset="UTF-8" />
-  <title>Logowanie - Grow a Gordon</title>
-  <style>
-    body { font-family: sans-serif; background: #f8f8f8; text-align: center; padding: 50px; }
-    input, button { margin: 10px; padding: 10px; width: 250px; font-size: 16px; }
-  </style>
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-    import { firebaseConfig } from './firebase-config.js';
+// login.js
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
+const loginForm = document.getElementById('login-form');
 
-    window.login = async function () {
-      const email = document.getElementById("email").value.trim();
-      const password = document.getElementById("password").value;
+loginForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const email = loginForm['email'].value;
+  const password = loginForm['password'].value;
 
-      if (!email) return alert("Wpisz email!");
-      if (!password) return alert("Wpisz hasło!");
-
-      try {
-        await signInWithEmailAndPassword(auth, email, password);
-        alert("Zalogowano!");
-        window.location.href = "game.html";
-      } catch (err) {
-        alert("Błąd: " + err.message);
-      }
-    };
-  </script>
-</head>
-<body>
-  <h1>Zaloguj się</h1>
-  <input type="email" id="email" placeholder="Email" /><br />
-  <input type="password" id="password" placeholder="Hasło" /><br />
-  <button onclick="login()">Zaloguj</button>
-</body>
-</html>
+  try {
+    await auth.signInWithEmailAndPassword(email, password);
+    alert('Zalogowano pomyślnie!');
+    window.location.href = 'game.html';
+  } catch (error) {
+    alert('Błąd logowania: ' + error.message);
+  }
+});
