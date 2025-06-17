@@ -1,1 +1,35 @@
-<html><body><div id='username'></div></body></html>
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Grow a Gordon 🎍</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header>
+    <h1>Grow a Gordon 🎍</h1>
+    <div id="username-display">👤 Nieznany</div>
+  </header>
+
+  <main>
+    <h2>Witaj w ogrodzie Gordona!</h2>
+    <p>Zarejestruj się lub zaloguj, by rozpocząć grę.</p>
+    <div>
+      <a href="register.html"><button>Zarejestruj</button></a>
+      <a href="login.html"><button>Zaloguj</button></a>
+    </div>
+  </main>
+
+  <script type="module">
+    import { updateUsernameDisplay } from './ui.js';
+    import { auth } from './firebase-config.js';
+
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        updateUsernameDisplay();
+      }
+    });
+  </script>
+</body>
+</html>
