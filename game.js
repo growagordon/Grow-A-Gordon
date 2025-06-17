@@ -3,15 +3,16 @@ import { renderPlant, updateUserInfoUI } from './ui.js';
 import { plantRarities, plantEmojis } from './plants.js';
 
 let currentUser = null;
-let userData = null;  // cache danych użytkownika
+let userData = null;
 
 async function loadUserData() {
   if (!currentUser) return;
   const userDocRef = db.collection('users').doc(currentUser.uid);
   const doc = await userDocRef.get();
-  userData = doc.data() || { plants: [], coins: 0, name: "Nieznany", adminShopUnlocked: false, codeFlags: {} };
+  userData = doc.data() || { plants: [], coins: 0, name: "Nieznany", codeFlags: {} };
   updateUserInfoUI(userData.name, userData.coins);
   renderPlants();
+  restockShop();
 }
 
 function renderPlants() {
@@ -57,7 +58,6 @@ async function saveUserData() {
   await userDocRef.set(userData);
 }
 
-// Kody i ich efekty
 async function redeemCode() {
   const codeInput = document.getElementById('codeInput');
   if (!codeInput) return;
@@ -77,7 +77,6 @@ async function redeemCode() {
       break;
 
     case 'start':
-      // dodaj 3 marchewki (Carrot)
       for(let i=0; i<3; i++) {
         userData.plants.push({ name: "Carrot", age: 0 });
       }
@@ -112,19 +111,17 @@ async function redeemCode() {
   await loadUserData();
 }
 
-// Funkcja generująca sklep - uwzględnia kody
 function generateShopPlants() {
-  const basePlants = Object.keys(plantEmojis);
+  const allPlantNames = Object.keys(plantEmojis);
   const shopPlants = [];
 
-  // Domyślna szansa na pojawienie się rośliny to 50%
   const defaultChance = 0.5;
   const cocodesBonus = userData.codeFlags?.cocodes ? 0.10 : 0;
   const admimangoesBonus = userData.codeFlags?.admimangoes ? 0.75 : 0;
 
   const finalChance = Math.min(1, defaultChance + cocodesBonus + admimangoesBonus);
 
-  basePlants.forEach(name => {
+  allPlantNames.forEach(name => {
     if (Math.random() < finalChance) {
       shopPlants.push({ name, age: 0 });
     }
@@ -133,32 +130,6 @@ function generateShopPlants() {
   return shopPlants;
 }
 
-// Przykład odświeżania sklepu (możesz go podłączyć do UI)
-function restockShop() {
+function renderShop(plants) {
   const shopDiv = document.getElementById('shop');
-  if (!shopDiv) return;
-
-  const plants = generateShopPlants();
   shopDiv.innerHTML = '';
-
-  plants.forEach(plant => {
-    const p = document.createElement('div');
-    p.textContent = `${plantEmojis[plant.name] || '❓'} ${plant.name}`;
-    shopDiv.appendChild(p);
-  });
-}
-
-// Nasłuchiwanie na zalogowanie użytkownika i inicjalizacja
-auth.onAuthStateChanged(async user => {
-  if (user) {
-    currentUser = user;
-    await loadUserData();
-    restockShop();
-  } else {
-    window.location.href = 'login.html';
-  }
-});
-
-// Podłącz funkcję do globalnego okna, żeby można było wywołać z HTML
-window.redeemCode = redeemCode;
-window.restockShop = restockShop;
