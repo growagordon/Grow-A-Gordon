@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Zarejestruj się — Grow a Gordon 🎍</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <h1>Rejestracja do Grow a Gordon 🎍</h1>
+  <form id="register-form">
+    <input type="text" id="name" placeholder="Nazwa użytkownika" required /><br />
+    <input type="email" id="email" placeholder="Email" required /><br />
+    <input type="password" id="password" placeholder="Hasło" required /><br />
+    <button type="submit">Zarejestruj się</button>
+  </form>
+  <p>Masz już konto? <a href="login.html">Zaloguj się</a></p>
+
+  <script type="module">
+    import { auth, db } from './firebase-config.js';
+
+    const registerForm = document.getElementById('register-form');
+    registerForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = registerForm['name'].value;
+      const email = registerForm['email'].value;
+      const password = registerForm['password'].value;
+
+      try {
+        const cred = await auth.createUserWithEmailAndPassword(email, password);
+        await db.collection('users').doc(cred.user.uid).set({
+          name: name,
+          coins: 0,
+          plants: []
+        });
+        await cred.user.updateProfile({ displayName: name });
+        alert('Zarejestrowano pomyślnie!');
+        window.location.href = 'game.html';
+      } catch (error) {
+        alert('Błąd rejestracji: ' + error.message);
+      }
+    });
+  </script>
+</body>
+</html>
