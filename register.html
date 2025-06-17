@@ -4,19 +4,49 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Rejestracja - Grow a Gordon</title>
-  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <h1>Rejestracja</h1>
-
+  <h1>Zarejestruj się</h1>
   <form id="register-form">
     <input type="email" name="email" placeholder="Email" required />
-    <input type="password" name="password" placeholder="Haso" required />
-    <button type="submit">Zarejestruj si</button>
+    <br />
+    <input type="password" name="password" placeholder="Hasło" required />
+    <br />
+    <button type="submit">Zarejestruj</button>
   </form>
 
-  <p>Masz ju konto? <a href="login.html">Zaloguj si</a></p>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-  <script type="module" src="register.js"></script>
+    // KONFIGURACJA TWOJEGO PROJEKTU FIREBASE
+    const firebaseConfig = {
+      apiKey: "AIzaSyCI1jYDWIJK8hveWDZizQ145Z-IEuz-RQc",
+      authDomain: "ilovekethup.firebaseapp.com",
+      projectId: "ilovekethup",
+      storageBucket: "ilovekethup.appspot.com",
+      messagingSenderId: "463148273822",
+      appId: "1:463148273822:web:f6c40788da13eb46083c68"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    const registerForm = document.getElementById('register-form');
+
+    registerForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = registerForm.email.value.trim();
+      const password = registerForm.password.value.trim();
+
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        alert('Rejestracja zakończona sukcesem! Możesz się teraz zalogować.');
+        window.location.href = 'login.html';  // przekieruj do logowania po rejestracji
+      } catch (error) {
+        alert('Błąd rejestracji: ' + error.message);
+      }
+    });
+  </script>
 </body>
 </html>
