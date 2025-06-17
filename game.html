@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Grow a Gordon 🌱</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <h1>🌿 Grow a Gordon 🌿</h1>
+
+  <div id="user-info">
+    Zalogowany jako: <span id="username">...</span> | 💰 Monety: <span id="coins">...</span>
+  </div>
+
+  <div id="event-info">Wydarzenie: <span id="current-event">Ładowanie...</span></div>
+
+  <div id="shop-section">
+    <h2>🛒 Sklep z roślinami</h2>
+    <div id="shop-plants"></div>
+  </div>
+
+  <div id="garden-section">
+    <h2>🪴 Twój ogródek</h2>
+    <div id="garden-grid"></div>
+  </div>
+
+  <div id="code-section">
+    <h2>🔐 Kody specjalne</h2>
+    <input type="text" id="code-input" placeholder="Wpisz kod..." />
+    <button onclick="redeemCode()">Zastosuj</button>
+    <div id="code-status"></div>
+  </div>
+
+  <script src="firebase-config.js"></script>
+  <script src="plants.js"></script>
+  <script src="ui.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
