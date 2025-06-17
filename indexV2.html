@@ -1,50 +1,55 @@
-// game.js import { auth, db } from './firebase-config.js'; import { renderPlant, updateUserInfoUI } from './ui.js'; import { plantRarities, plantEmojis } from './plants.js';
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Twój Ogród - Grow a Gordon</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header>
+    <h1>Twój Ogród</h1>
+    <div id="user-info">
+      <span id="username"> adowanie...</span>
+      <span id="coins"> 0</span>
+    </div>
+  </header>
 
-let currentUser = null; let activeCodes = { adminShop: false, cocodes: false, admimangoes: false, };
+  <main>
+    <section id="plants-section">
+      <h2>Twoje Roliny</h2>
+      <div id="plants-container">
+        <!-- Roliny uytkownika -->
+      </div>
+    </section>
 
-const eventChances = [ { event: 'Sweetfest', chance: 4 }, { event: 'Love Festival', chance: 3 }, { event: 'Lunar Festival', chance: 2 }, { event: 'Luck Festival', chance: 4 }, { event: 'Harvest Haunt', chance: 3 }, { event: 'Winter’s Gift', chance: 4 }, { event: null, chance: 80 } ];
+    <section id="shop-section">
+      <h2>Sklep</h2>
+      <div id="shop">adowanie sklepu...</div>
 
-function pickEvent() { const roll = Math.random() * 100; let cumulative = 0; for (const { event, chance } of eventChances) { cumulative += chance; if (roll <= cumulative) return event; } return null; }
+      <div id="code-redeem">
+        <input type="text" id="codeInput" placeholder="Wpisz kod" />
+        <button id="redeemBtn">Odbierz kod</button>
+      </div>
+    </section>
 
-function getShopPlants() { const allPlantNames = Object.keys(plantRarities); const isEventActive = activeCodes.admimangoes || activeCodes.cocodes; const event = pickEvent(); let shopPlants = []; for (let i = 0; i < 6; i++) { const pool = allPlantNames.filter(name => { const rarity = plantRarities[name]; if (['admin', 'mythical'].includes(rarity)) return false; if (rarity === 'event') { if (activeCodes.admimangoes) return Math.random() < 0.75; if (activeCodes.cocodes) return Math.random() < 0.1; return false; } return true; }); const plantName = pool[Math.floor(Math.random() * pool.length)]; shopPlants.push({ name: plantName, age: 0 }); } return shopPlants; }
+    <section id="ownerShop" style="display:none;">
+      <h2>Sklep Admina</h2>
+      <div id="admin-shop">Brak rolin w sklepie admina.</div>
+    </section>
+  </main>
 
-function renderShop(plants) { const shopEl = document.getElementById('shop'); shopEl.innerHTML = ''; plants.forEach((plant, index) => { const div = document.createElement('div'); div.className = 'plant'; div.innerHTML =  <span class="emoji">${plantEmojis[plant.name] || ''}</span> <div class="info"> <strong>${plant.name}</strong><br> Rzadko: ${plantRarities[plant.name] || 'unknown'}<br> <button onclick="buyPlant(${index})">Kup</button> </div>; shopEl.appendChild(div); }); }
+  <!-- Kluczowe: zaaduj game.js jako modu -->
+  <script type="module" src="game.js"></script>
 
-let currentShopPlants = [];
+  <script>
+    // Przykadowo podpicie przycisku do funkcji redeemCode z game.js
+    import { redeemCode } from './game.js';
 
-function restockShop() { currentShopPlants = getShopPlants(); renderShop(currentShopPlants); }
-
-async function buyPlant(index) { const userDocRef = db.collection('users').doc(currentUser.uid); const doc = await userDocRef.get(); const data = doc.data(); const plant = currentShopPlants[index]; if (!plant) return;
-
-const rarity = plantRarities[plant.name] || 'common'; const prices = { common: 10, rare: 25, event: 50 }; const cost = prices[rarity] || 5;
-
-if (data.coins < cost) return alert('Za mao monet!');
-
-data.coins -= cost; data.plants.push(plant); await userDocRef.set(data); await loadUserPlants(); }
-
-function redeemCode() { const code = document.getElementById('codeInput').value.trim().toLowerCase(); if (code === 'owneristhebestpeopleinentireworld') { activeCodes.adminShop = true; document.getElementById('ownerShop').style.display = 'block'; alert('Sklep admina odblokowany!'); } else if (code === 'start') { giveStartPlants(); } else if (code === 'cocodes') { activeCodes.cocodes = true; alert('Sklep ma teraz 10% szans na eventowe roliny!'); } else if (code === 'admimangoes') { activeCodes.admimangoes = true; alert('Wszystkie sklepy maj teraz 75% szans na eventowe roliny!'); } else { alert('Nieznany kod'); } document.getElementById('codeInput').value = ''; restockShop(); }
-
-async function giveStartPlants() { const userDocRef = db.collection('users').doc(currentUser.uid); const doc = await userDocRef.get(); const data = doc.data(); for (let i = 0; i < 3; i++) { data.plants.push({ name: 'Carrot', age: 0 }); } await userDocRef.set(data); await loadUserPlants(); }
-
-async function loadUserPlants() { const userDocRef = db.collection('users').doc(currentUser.uid); const doc = await userDocRef.get(); const data = doc.data(); if (!data) return;
-
-const { plants = [], coins = 0, name = 'Nieznany' } = data;
-
-const container = document.getElementById('plants-container'); if (container) container.innerHTML = '';
-
-updateUserInfoUI(name, coins);
-
-plants.forEach((plant, index) => { const plantElement = renderPlant(plant, async () => { await sellPlant(index); }); if (container) container.appendChild(plantElement); }); }
-
-async function sellPlant(index) { const userDocRef = db.collection('users').doc(currentUser.uid); const doc = await userDocRef.get(); const data = doc.data();
-
-const plant = data.plants[index]; if (!plant) return;
-
-const rarity = plantRarities[plant.name] || 'common'; const prices = { common: 10, rare: 25, event: 50, admin: 100, mythical: 250 };
-
-const value = prices[rarity] || 5; data.coins += value; data.plants.splice(index, 1);
-
-await userDocRef.set(data); await loadUserPlants(); }
-
-auth.onAuthStateChanged(user => { if (user) { currentUser = user; loadUserPlants(); restockShop(); setInterval(restockShop, 120000); // co 2 minuty } else { window.location.href = 'login.html'; } });
-
+    document.getElementById('redeemBtn').addEventListener('click', () => {
+      redeemCode();
+    });
+  </script>
+</body>
+</html>
