@@ -3,5 +3,36 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Grow a Gordon </title>
-  <link rel="stylesheet" href
+  <title>Grow a Gordon - Start</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin-top: 100px;
+    }
+    #yourGarden {
+      display: inline-block;
+      padding: 20px 40px;
+      background-color: #4CAF50;
+      color: white;
+      font-size: 24px;
+      cursor: pointer;
+      border-radius: 8px;
+      user-select: none;
+      transition: background-color 0.3s;
+    }
+    #yourGarden:hover {
+      background-color: #45a049;
+    }
+  </style>
+</head>
+<body>
+  <div id="yourGarden">Twój ogród</div>
+
+  <script>
+    document.getElementById('yourGarden').addEventListener('click', () => {
+      window.location.href = 'game.html';
+    });
+  </script>
+</body>
+</html>
