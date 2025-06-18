@@ -1,125 +1,36 @@
-import { auth, db } from './firebase-config.js';
-import { renderPlant, updateUserInfoUI } from './ui.js';
-import { plantRarities, plantEmojis } from './plants.js';
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Grow a Gordon - Gra</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <h1>Grow a Gordon 🌱</h1>
 
-let currentUser, userData;
+  <div id="user-info">
+    <p>Gracz: <span id="username">Ładowanie...</span></p>
+    <p>Monety: <span id="coins">0</span></p>
+  </div>
 
-async function loadUserData() {
-  const doc = await db.collection('users').doc(currentUser.uid).get();
-  userData = doc.data() || { plants: [], coins: 0, name: "Nieznany", codeFlags: {} };
-  updateUserInfoUI(userData.name, userData.coins);
-  renderPlants();
-  restockShop();
-}
+  <h2>Twoje rośliny</h2>
+  <div id="plants-container">Ładowanie roślin...</div>
 
-function renderPlants() {
-  const c = document.getElementById('plants-container');
-  c.innerHTML = '';
-  if (!userData.plants.length) {
-    c.textContent = 'Brak roślin 😢'; 
-    return;
-  }
-  userData.plants.forEach((p, i) => {
-    const el = renderPlant(p, async () => { await sellPlant(i); });
-    c.appendChild(el);
-  });
-}
+  <h2>Sklep</h2>
+  <div id="shop">Ładowanie sklepu...</div>
 
-async function sellPlant(i) {
-  const p = userData.plants[i];
-  if (!p) return;
-  const v = { common:10, rare:25, event:50, admin:100, mythical:250 }[plantRarities[p.name]||'common'] || 5;
-  userData.coins += v; 
-  userData.plants.splice(i,1);
-  await save(); 
-  updateUserInfoUI(userData.name, userData.coins); 
-  renderPlants();
-}
+  <h2>Wpisz kod</h2>
+  <input type="text" id="codeInput" placeholder="Wpisz kod" />
+  <button onclick="redeemCode()">Zrealizuj</button>
 
-async function save() {
-  await db.collection('users').doc(currentUser.uid).set(userData);
-}
+  <!-- 🔧 GŁÓWNA ZMIANA – modułowy skrypt -->
+  <script type="module">
+    import { redeemCode, restockShop } from './game.js';
 
-export async function redeemCode() {
-  const c = document.getElementById('codeInput');
-  const code = c.value.trim().toLowerCase();
-  if (!code) return alert("Wpisz kod.");
-  if (!userData.codeFlags) userData.codeFlags = {};
-
-  switch(code) {
-    case 'owneristhebestpeopleinentireworld':
-      userData.codeFlags.ownerShop = true;
-      alert('Odblokowano sklep właściciela!');
-      break;
-    case 'start':
-      for(let x=0;x<3;x++) userData.plants.push({ name: "Carrot", age:0 });
-      alert('Dodano 3 marchewki!');
-      break;
-    case 'cocodes':
-      userData.codeFlags.cocodes = true;
-      alert('Do sklepu +10% eventowych!');
-      break;
-    case 'admimangoes':
-      userData.codeFlags.admimangoes = true;
-      alert('Sklepy 75% eventowych!');
-      break;
-    default:
-      alert('Nieznany kod');
-      return;
-  }
-
-  await save(); 
-  c.value='';
-  loadUserData();
-}
-
-function genShop() {
-  const names = Object.keys(plantEmojis);
-  const { cocodes, admimangoes } = userData.codeFlags || {};
-  const base = (cocodes?0.10:0)+(admimangoes?0.75:0) + 0.5;
-  return names.filter(n => {
-    const r = plantRarities[n];
-    if (['admin','mythical'].includes(r) && !userData.codeFlags.ownerShop) return false;
-    if (r==='event') return Math.random()<base;
-    return Math.random()<base;
-  }).slice(0,6).map(n=>({ name: n, age:0 }));
-}
-
-function renderShop(pl) {
-  const s = document.getElementById('shop');
-  s.innerHTML = '';
-  pl.forEach((p, i) => {
-    const d = document.createElement('div');
-    d.textContent = `${plantEmojis[p.name] || '❓'} ${p.name}`;
-    d.onclick = () => buyPlant(i);
-    s.appendChild(d);
-  });
-}
-
-async function buyPlant(i) {
-  const shop = genShop();
-  const p = shop[i];
-  const cost = { common:10, rare:25, event:50 }[ plantRarities[p.name]||'common' ] || 5;
-  if (userData.coins < cost) return alert('Za mało monet!');
-  userData.coins -= cost;
-  userData.plants.push(p);
-  await save(); 
-  updateUserInfoUI(userData.name, userData.coins); 
-  renderPlants(); 
-  restockShop();
-}
-
-export function restockShop() {
-  renderShop(genShop());
-}
-
-auth.onAuthStateChanged(u => {
-  if (u) { 
-    currentUser = u; 
-    loadUserData(); 
-    setInterval(restockShop, 120000); 
-  }
-  else { 
-    window.location.href='login.html'; 
-  }
-});
+    // Ustawienie globalnych funkcji, by działały z onclick
+    window.redeemCode = redeemCode;
+    window.restockShop = restockShop;
+  </script>
+</body>
+</html>

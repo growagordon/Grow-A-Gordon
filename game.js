@@ -16,7 +16,8 @@ function renderPlants() {
   const c = document.getElementById('plants-container');
   c.innerHTML = '';
   if (!userData.plants.length) {
-    c.textContent = 'Brak rolin '; return;
+    c.textContent = 'Brak roślin 😢'; 
+    return;
   }
   userData.plants.forEach((p, i) => {
     const el = renderPlant(p, async () => { await sellPlant(i); });
@@ -28,15 +29,17 @@ async function sellPlant(i) {
   const p = userData.plants[i];
   if (!p) return;
   const v = { common:10, rare:25, event:50, admin:100, mythical:250 }[plantRarities[p.name]||'common'] || 5;
-  userData.coins += v; userData.plants.splice(i,1);
-  await save(); updateUserInfoUI(userData.name, userData.coins); renderPlants();
+  userData.coins += v; 
+  userData.plants.splice(i,1);
+  await save(); 
+  updateUserInfoUI(userData.name, userData.coins); 
+  renderPlants();
 }
 
 async function save() {
   await db.collection('users').doc(currentUser.uid).set(userData);
 }
 
-// kody
 export async function redeemCode() {
   const c = document.getElementById('codeInput');
   const code = c.value.trim().toLowerCase();
@@ -46,23 +49,30 @@ export async function redeemCode() {
   switch(code) {
     case 'owneristhebestpeopleinentireworld':
       userData.codeFlags.ownerShop = true;
-      alert('Odblokowano sklep waciciela!'); break;
+      alert('Odblokowano sklep właściciela!');
+      break;
     case 'start':
       for(let x=0;x<3;x++) userData.plants.push({ name: "Carrot", age:0 });
-      alert('Dodano 3 marchewki!'); break;
+      alert('Dodano 3 marchewki!');
+      break;
     case 'cocodes':
       userData.codeFlags.cocodes = true;
-      alert('Do sklepu +10% eventowych!'); break;
+      alert('Do sklepu +10% eventowych!');
+      break;
     case 'admimangoes':
       userData.codeFlags.admimangoes = true;
-      alert('Sklepy 75% eventowych!'); break;
-    default: alert('Nieznany kod'); return;
+      alert('Sklepy 75% eventowych!');
+      break;
+    default:
+      alert('Nieznany kod');
+      return;
   }
 
-  await save(); c.value=''; loadUserData();
+  await save(); 
+  c.value='';
+  loadUserData();
 }
 
-// sklep
 function genShop() {
   const names = Object.keys(plantEmojis);
   const { cocodes, admimangoes } = userData.codeFlags || {};
@@ -80,7 +90,7 @@ function renderShop(pl) {
   s.innerHTML = '';
   pl.forEach((p, i) => {
     const d = document.createElement('div');
-    d.textContent = `${plantEmojis[p.name] || ''} ${p.name}`;
+    d.textContent = `${plantEmojis[p.name] || '❓'} ${p.name}`;
     d.onclick = () => buyPlant(i);
     s.appendChild(d);
   });
@@ -90,10 +100,13 @@ async function buyPlant(i) {
   const shop = genShop();
   const p = shop[i];
   const cost = { common:10, rare:25, event:50 }[ plantRarities[p.name]||'common' ] || 5;
-  if (userData.coins < cost) return alert('Za mao monet!');
+  if (userData.coins < cost) return alert('Za mało monet!');
   userData.coins -= cost;
   userData.plants.push(p);
-  await save(); updateUserInfoUI(userData.name, userData.coins); renderPlants(); restockShop();
+  await save(); 
+  updateUserInfoUI(userData.name, userData.coins); 
+  renderPlants(); 
+  restockShop();
 }
 
 export function restockShop() {
@@ -101,6 +114,12 @@ export function restockShop() {
 }
 
 auth.onAuthStateChanged(u => {
-  if (u) { currentUser = u; loadUserData(); setInterval(restockShop, 120000); }
-  else { window.location.href='login.html'; }
+  if (u) { 
+    currentUser = u; 
+    loadUserData(); 
+    setInterval(restockShop, 120000); 
+  }
+  else { 
+    window.location.href='login.html'; 
+  }
 });
