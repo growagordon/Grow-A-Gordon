@@ -2,35 +2,92 @@
 <html lang="pl">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Grow a Gordon - Gra</title>
-  <link rel="stylesheet" href="styles.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Grow a Gordon 🎍</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: #f0f8ff;
+      color: #333;
+    }
+    header {
+      margin-bottom: 20px;
+    }
+    #user-info {
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+    #shop, #plants-container {
+      border: 1px solid #ccc;
+      padding: 10px;
+      min-height: 100px;
+      margin-bottom: 20px;
+      background-color: white;
+      border-radius: 6px;
+    }
+    #shop div, #plants-container div {
+      padding: 5px;
+      margin: 5px;
+      display: inline-block;
+      border: 1px solid #888;
+      border-radius: 4px;
+      cursor: pointer;
+      user-select: none;
+    }
+    #shop div:hover, #plants-container div:hover {
+      background-color: #e0f7fa;
+    }
+    #codes-section {
+      margin-bottom: 20px;
+    }
+    #codeInput {
+      padding: 5px;
+      font-size: 16px;
+      width: 200px;
+      margin-right: 10px;
+    }
+    #redeemBtn {
+      padding: 6px 12px;
+      font-size: 16px;
+      cursor: pointer;
+      background-color: #2196F3;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      transition: background-color 0.3s;
+    }
+    #redeemBtn:hover {
+      background-color: #0b7dda;
+    }
+  </style>
 </head>
 <body>
-  <h1>Grow a Gordon 🌱</h1>
+  <header>
+    <div id="user-info">
+      <span id="username">Ładowanie...</span> | Monety: <span id="coins">0</span>
+    </div>
+  </header>
 
-  <div id="user-info">
-    <p>Gracz: <span id="username">Ładowanie...</span></p>
-    <p>Monety: <span id="coins">0</span></p>
-  </div>
+  <section id="shop-section">
+    <h2>Twój sklep</h2>
+    <div id="shop">Ładowanie sklepu...</div>
+  </section>
 
-  <h2>Twoje rośliny</h2>
-  <div id="plants-container">Ładowanie roślin...</div>
+  <section id="codes-section">
+    <input type="text" id="codeInput" placeholder="Wpisz kod" />
+    <button id="redeemBtn">Odbierz kod</button>
+  </section>
 
-  <h2>Sklep</h2>
-  <div id="shop">Ładowanie sklepu...</div>
+  <section id="plants-section">
+    <h2>Twój ogród</h2>
+    <div id="plants-container">Ładowanie roślin...</div>
+  </section>
 
-  <h2>Wpisz kod</h2>
-  <input type="text" id="codeInput" placeholder="Wpisz kod" />
-  <button onclick="redeemCode()">Zrealizuj</button>
-
-  <!-- 🔧 GŁÓWNA ZMIANA – modułowy skrypt -->
+  <script type="module" src="./game.js"></script>
   <script type="module">
-    import { redeemCode, restockShop } from './game.js';
-
-    // Ustawienie globalnych funkcji, by działały z onclick
-    window.redeemCode = redeemCode;
-    window.restockShop = restockShop;
+    import { redeemCode } from './game.js';
+    document.getElementById('redeemBtn').addEventListener('click', redeemCode);
   </script>
 </body>
 </html>
