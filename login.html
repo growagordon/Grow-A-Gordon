@@ -1,5 +1,4 @@
-<!DOCTYPE html>
-<html lang="pl">
+<!DOCTYPE html><html lang="pl">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -10,22 +9,28 @@
     input, button { width: 100%; padding: 10px; margin: 10px 0; font-size: 16px; }
     button { background-color: #a5d6a7; border: none; border-radius: 6px; cursor: pointer; }
     button:hover { background-color: #81c784; }
+    #captcha-container { margin-top: 10px; display: none; }
   </style>
+  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </head>
-<body>
-
-  <h1>Logowanie</h1>
+<body>  <h1>Logowanie</h1>
   <form id="login-form">
     <input type="email" name="email" placeholder="Email" required />
     <input type="password" name="password" placeholder="Hasło" required minlength="6" />
+    <div id="captcha-container" class="g-recaptcha" data-sitekey="TWÓJ_RECAPTCHA_SITE_KEY"></div>
     <button type="submit">Zaloguj się</button>
-  </form>
-
-  <script type="module">
+  </form>  <script type="module">
     import { auth } from './firebase-config.js';
-    import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
     const form = document.getElementById('login-form');
+    const captchaContainer = document.getElementById('captcha-container');
+
+    let failedAttempts = parseInt(localStorage.getItem('failedAttempts')) || 0;
+
+    function delay(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
 
     form.addEventListener('submit', async e => {
       e.preventDefault();
@@ -33,15 +38,35 @@
       const email = form.email.value.trim();
       const password = form.password.value;
 
+      if (failedAttempts >= 3) {
+        captchaContainer.style.display = 'block';
+        const captchaResponse = grecaptcha.getResponse();
+        if (!captchaResponse) {
+          alert('Potwierdź, że nie jesteś robotem.');
+          return;
+        }
+      }
+
+      await delay(1000); // opóźnienie 1 sekundy
+
       try {
-        await signInWithEmailAndPassword(auth, email, password);
+        const userCred = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCred.user;
+
+        if (!user.emailVerified) {
+          alert('Musisz zweryfikować adres e-mail przed logowaniem.');
+          await signOut(auth);
+          return;
+        }
+
+        localStorage.setItem('failedAttempts', '0');
         alert('Zalogowano pomyślnie!');
         window.location.href = 'indexV2.html';
       } catch (error) {
+        failedAttempts++;
+        localStorage.setItem('failedAttempts', failedAttempts);
         alert('Błąd logowania: ' + error.message);
       }
     });
-  </script>
-
-</body>
+  </script></body>
 </html>
